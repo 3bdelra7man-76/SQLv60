@@ -1,58 +1,89 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SQL Daily
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A local SQL practice app for keeping data analysis skills fresh, one query at a time.
 
-## About Laravel
+SQL Daily is a 60-day syntax gym. Each day presents a business question, a visual guide to the available tables, and a place to write and run a SQLite query. The focus is on revisiting familiar SQL concepts regularly rather than following a beginner-to-advanced course.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+> **Project status:** Phase one is a local, single-user app under active development. The current 60-day catalog rotates challenge patterns across five business datasets. Online accounts and syncing are outside this phase.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## How a practice day works
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+1. Open the dashboard to see today's challenge and your current and best streaks.
+2. Read the question and inspect the table cards, columns, keys, and relationships.
+3. Write a query in the SQL editor. Your draft is saved locally as you work.
+4. Run it to see the result table and feedback. If you get stuck, reveal a hint.
+5. Match the expected result to complete the challenge and see a reference query.
 
-## Learning Laravel
+One new challenge becomes available each calendar day. Earlier challenges stay open for practice, including ones you missed. A challenge extends your streak only when you complete it on its assigned day; a missed day resets the current streak. The app uses the **Africa/Cairo** timezone for its daily schedule.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## What you can practice
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+The prompts use five small business datasets: retail sales, e-commerce, workforce, subscriptions, and inventory. They revisit filtering and sorting, joins, grouping and `HAVING`, subqueries and `EXISTS`, `CASE`, CTEs, and window functions such as ranking and running totals.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+The challenge catalog currently provides 60 daily slots by combining 12 prompt patterns with those five datasets. The exercises are mixed across days instead of arranged as levels. They are based on the topics in the [SQL knowledge notes](my%20knowledge/Learning%20SQL.md) included in this repository.
 
-## Agentic Development
+Queries run against a fresh, temporary copy of the selected dataset. The app accepts one read-only `SELECT` or `WITH` query and compares its columns, values, and row order with a reference result. Your query cannot change the database that stores your progress.
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## Run it locally
+
+### Requirements
+
+- PHP 8.3 or newer with **PDO SQLite** enabled (`php -m` should list `pdo_sqlite`)
+- Composer
+- Node.js and npm
+
+No MySQL or PostgreSQL server, account, or hosted service is required. After dependencies are installed and frontend assets are built, the app runs locally.
+
+### Setup
+
+From the project directory:
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+npm install
+cp .env.example .env
+touch database/database.sqlite
+php artisan key:generate
+php artisan migrate
+npm run build
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Open the local address printed by `php artisan serve`. The first visit starts Day 1 and creates your local practice profile.
 
-## Contributing
+The commands above use a Unix-like shell. On Windows, copy `.env.example` to `.env` and create an empty `database/database.sqlite` file using your shell or file manager before running the Artisan commands.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### If you see “could not find driver”
 
-## Code of Conduct
+PHP is not loading its PDO SQLite extension. Check with:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+php -m | grep -i sqlite
+```
 
-## Security Vulnerabilities
+On Arch Linux or CachyOS, install the extension package if needed:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+sudo pacman -S php-sqlite
+```
 
-## License
+Then enable `extension=pdo_sqlite` in `/etc/php/php.ini` by removing the leading semicolon. Enable `extension=sqlite3` there too if you want the separate SQLite3 PHP API. Restart any running PHP server, check `php -m` again, and rerun `php artisan migrate`.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Installing the `sqlite3` command-line program alone does **not** enable the PHP driver.
+
+## Where your work is stored
+
+Your start date, drafts, attempts, and completions are stored in `database/database.sqlite`. That file is ignored by Git, so cloning the repository starts with a fresh profile. Back up that file if you want to keep your progress when moving computers or reinstalling the app.
+
+The challenge definitions and sample datasets live in `app/Domain/Practice/`. The interface is in `resources/views/`, and the SQL editor is bundled from `resources/js/`.
+
+## Development
+
+Run the test suite and rebuild frontend assets with:
+
+```bash
+php artisan test
+npm run build
+```
+
+The app uses Laravel for the local web application, SQLite for progress and practice queries, CodeMirror for the SQL editor, and Tailwind CSS for the dark interface. These are implementation details; the product is designed to work entirely on your own machine.

@@ -22,8 +22,15 @@ class QueryRunner
                 $db->exec($s);
             }$db->exec('PRAGMA query_only=ON');
             $st = $db->query($q);
-            $rows = $st->fetchAll(PDO::FETCH_ASSOC);
-            $columns = $rows ? array_keys($rows[0]) : array_map(fn ($n) => $st->getColumnMeta($n)['name'], range(0, max(0, $st->columnCount() - 1)));
+            $columns = [];
+            for ($index = 0; $index < $st->columnCount(); $index++) {
+                $columns[] = $st->getColumnMeta($index)['name'];
+            }
+
+            $rows = [];
+            while (count($rows) <= 250 && ($row = $st->fetch(PDO::FETCH_ASSOC)) !== false) {
+                $rows[] = $row;
+            }
 
             return ['ok' => true, 'columns' => $columns, 'rows' => array_slice($rows, 0, 250), 'truncated' => count($rows) > 250];
         } catch (Throwable $e) {
