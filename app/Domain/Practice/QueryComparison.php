@@ -4,20 +4,22 @@ namespace App\Domain\Practice;
 
 class QueryComparison
 {
-    public function matches(array $a, array $e, bool $ordered): bool
+    public function matches(array $actual, array $expected, bool $ordered): bool
     {
-        if (($a['columns'] ?? []) !== ($e['columns'] ?? [])) {
+        if (($actual['columns'] ?? []) !== ($expected['columns'] ?? [])) {
             return false;
-        }$a = $a['rows'];
-        $e = $e['rows'];
-        if (! $ordered) {
-            $n = fn ($r) => json_encode(array_values($r));
-            $a = array_map($n, $a);
-            $e = array_map($n, $e);
-            sort($a);
-            sort($e);
         }
 
-return $a === $e;
+        $actualRows = $actual['rows'];
+        $expectedRows = $expected['rows'];
+        if (! $ordered) {
+            $normalize = fn (array $row): string => json_encode(array_values($row), JSON_THROW_ON_ERROR);
+            $actualRows = array_map($normalize, $actualRows);
+            $expectedRows = array_map($normalize, $expectedRows);
+            sort($actualRows);
+            sort($expectedRows);
+        }
+
+        return $actualRows === $expectedRows;
     }
 }

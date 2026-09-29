@@ -10,12 +10,24 @@ use Illuminate\View\View;
 
 class DashboardController extends Controller
 {
-    public function __invoke(ChallengeCatalog $c, StreakCalculator $s): View
+    public function __invoke(ChallengeCatalog $catalog, StreakCalculator $streaks): View
     {
-        $p = PracticeProfile::firstOrCreate([], ['started_on' => today(), 'timezone' => config('app.timezone')]);
-        $day = min(60, (int) $p->started_on->diffInDays(today()) + 1);
-        $rows = ChallengeProgress::all()->keyBy('day');
+        $profile = PracticeProfile::firstOrCreate([], ['started_on' => today(), 'timezone' => config('app.timezone')]);
+        $elapsedDay = max(1, (int) $profile->started_on->diffInDays(today()) + 1);
+        $today = min(ChallengeCatalog::TOTAL_DAYS, $elapsedDay);
+        $progress = ChallengeProgress::all()->keyBy('day');
+        $completed = $progress->filter(fn (ChallengeProgress $row): bool => $row->completed_at !== null)->count();
+        $dueDays = min(ChallengeCatalog::TOTAL_DAYS, $elapsedDay - 1);
+        $timely = $progress->filter(fn (ChallengeProgress $row): bool => $row->completed_on_time)->count();
 
-        return view('dashboard', ['challenges' => $c->all(), 'today' => $day, 'progress' => $rows, 'stats' => $s->calculate($rows, $day)]);
+        return view('dashboard', [
+            'challenges' => $catalog->all(),
+            'today' => $today,
+            'finished' => $elapsedDay > ChallengeCatalog::TOTAL_DAYS,
+            'progress' => $progress,
+            'completed' => $completed,
+            'missed' => max(0, $dueDays - $timely),
+            'stats' => $streaks->calculate($progress, min(ChallengeCatalog::TOTAL_DAYS + 1, $elapsedDay)),
+        ]);
     }
 }

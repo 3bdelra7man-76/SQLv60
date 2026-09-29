@@ -4,23 +4,26 @@ namespace App\Domain\Practice;
 
 class StreakCalculator
 {
-    public function calculate(iterable $rows, int $today): array
+    /** @return array{current: int, best: int} */
+    public function calculate(iterable $progressRows, int $today): array
     {
-        $done = [];
-        foreach ($rows as $r) {
-            if ($r->completed_on_time) {
-                $done[$r->day] = true;
-            }
-        }$best = $run = 0;
-        for ($d = 1; $d <= $today; $d++) {
-            if (isset($done[$d])) {
-                $run++;
-                $best = max($best, $run);
-            } elseif ($d < $today) {
-                $run = 0;
+        $completedDays = [];
+        foreach ($progressRows as $progress) {
+            if ($progress->completed_on_time) {
+                $completedDays[$progress->day] = true;
             }
         }
 
-return ['current' => $run, 'best' => $best];
+        $best = $current = 0;
+        for ($day = 1; $day <= $today; $day++) {
+            if (isset($completedDays[$day])) {
+                $current++;
+                $best = max($best, $current);
+            } elseif ($day < $today) {
+                $current = 0;
+            }
+        }
+
+        return ['current' => $current, 'best' => $best];
     }
 }
